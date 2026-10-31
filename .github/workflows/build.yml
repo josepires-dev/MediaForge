@@ -29,14 +29,14 @@ jobs:
           node-version: 20
 
       - name: Cache de pacotes NuGet
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~\.nuget\packages
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json', 'nuget.config') }}
           restore-keys: nuget-${{ runner.os }}-
 
       - name: Cache das ferramentas (FFmpeg, Pandoc)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}\mediaforge-tools-cache
           key: tools-${{ hashFiles('scripts/tools.lock.json') }}
