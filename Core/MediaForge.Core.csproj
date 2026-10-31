@@ -9,5 +9,7 @@
     <Compile Include="..\Services\ConversionService.cs" Link="Services\ConversionService.cs" />
     <Compile Include="..\Services\HistoryService.cs" Link="Services\HistoryService.cs" />
     <Compile Include="..\Services\ErrorLogger.cs" Link="Services\ErrorLogger.cs" />
+    <Compile Include="..\Services\UrlSafetyPolicy.cs" Link="Services\UrlSafetyPolicy.cs" />
+    <Compile Include="..\Services\EnvironmentDoctor.cs" Link="Services\EnvironmentDoctor.cs" />
   </ItemGroup>
 </Project>

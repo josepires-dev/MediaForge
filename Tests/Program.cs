@@ -6,11 +6,20 @@ using System.Text;
 using System.Text.Json;
 using MediaForge.Services;
 
-var projectRoot = args.Length > 0
-    ? Path.GetFullPath(args[0])
+var positionalArgs = args.Where(argument => !argument.StartsWith("--", StringComparison.Ordinal)).ToArray();
+var projectRoot = positionalArgs.Length > 0
+    ? Path.GetFullPath(positionalArgs[0])
     : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
 var tools = Path.Combine(projectRoot, "Tools");
 var wasm = Path.Combine(projectRoot, "Assets", "Converter", "wasm");
+
+if (args.Contains("--doctor"))
+{
+    var report = EnvironmentDoctor.Run(tools);
+    Console.WriteLine(EnvironmentDoctor.Format(report));
+    Environment.Exit(report.All(check => check.Passed) ? 0 : 1);
+}
+
 var root = Path.Combine(Path.GetTempPath(), "MediaForgeSmoke", Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(root);
 var passed = 0;
@@ -126,12 +135,109 @@ try
             && parsedChat.RootElement.GetProperty("totalSessions").GetInt32() == 2, "JSON conversation exports merge all messages without overwriting");
     }
 
+    var mixedJsonRejected = false;
+    try
+    {
+        await service.MergeJsonAsync([jsonA, jsonArrayA], Path.Combine(root, "out"));
+    }
+    catch (ArgumentException ex) when (ex.Message.Contains("incompatíveis", StringComparison.OrdinalIgnoreCase))
+    {
+        mixedJsonRejected = true;
+    }
+    Check(mixedJsonRejected, "Mixed object and array JSON files are rejected fail-fast");
+
+    var singleMergeRejected = false;
+    try
+    {
+        await service.MergeMarkdownAsync([markdownA], Path.Combine(root, "out"));
+    }
+    catch (ArgumentException ex) when (ex.Message.Contains("pelo menos dois", StringComparison.OrdinalIgnoreCase))
+    {
+        singleMergeRejected = true;
+    }
+    Check(singleMergeRejected, "Markdown merge with a single file reports an accurate message");
+
+    var wrongMergeTypeRejected = false;
+    try
+    {
+        await service.MergeMarkdownAsync([markdownA, textInput], Path.Combine(root, "out"));
+    }
+    catch (ArgumentException ex) when (ex.Message.Contains(".md", StringComparison.OrdinalIgnoreCase)
+        && !ex.Message.Contains("JSON", StringComparison.OrdinalIgnoreCase))
+    {
+        wrongMergeTypeRejected = true;
+    }
+    Check(wrongMergeTypeRejected, "Markdown merge rejects non-Markdown files without mentioning JSON");
+
     var urlFile = Path.Combine(root, "website.url");
     var (localWebsiteUrl, localWebsiteServer) = StartLocalWebsite();
     await File.WriteAllTextAsync(urlFile, localWebsiteUrl);
-    var website = await service.ConvertAsync(urlFile, new ConversionOptions("md"), Path.Combine(root, "out"));
+    var localService = new ConversionService(tools, Path.Combine(root, "temp-local"), UrlSafetyPolicy.AllowPrivateNetwork);
+    var website = await localService.ConvertAsync(urlFile, new ConversionOptions("md"), Path.Combine(root, "out"));
     await localWebsiteServer.WaitAsync(TimeSpan.FromSeconds(10));
     Check((await File.ReadAllTextAsync(website.FullPath)).Contains("MediaForge URL", StringComparison.Ordinal), "Local website converts through HTTP and Pandoc");
+
+    var loopbackBlocked = false;
+    try
+    {
+        await service.ConvertAsync(urlFile, new ConversionOptions("md"), Path.Combine(root, "out"));
+    }
+    catch (ArgumentException ex) when (ex.Message.Contains("bloqueado", StringComparison.OrdinalIgnoreCase))
+    {
+        loopbackBlocked = true;
+    }
+    Check(loopbackBlocked, "URL conversion blocks loopback targets by default (SSRF protection)");
+
+    var blockedAddresses = new[]
+    {
+        "0.0.0.0", "10.0.0.1", "100.64.0.1", "127.0.0.1", "169.254.169.254", "172.16.0.1",
+        "172.31.255.255", "192.168.1.5", "224.0.0.1", "::1", "fe80::1", "fc00::1", "::ffff:10.0.0.1"
+    };
+    Check(blockedAddresses.All(address => UrlSafetyPolicy.IsBlockedAddress(IPAddress.Parse(address))),
+        "SSRF policy blocks loopback, private, link-local, CGNAT and reserved addresses");
+    var publicAddresses = new[] { "1.1.1.1", "8.8.8.8", "172.32.0.1", "2606:4700:4700::1111" };
+    Check(publicAddresses.All(address => !UrlSafetyPolicy.IsBlockedAddress(IPAddress.Parse(address))),
+        "SSRF policy keeps public addresses reachable");
+
+    var rejectedUrls = new[]
+    {
+        "ftp://example.com/file", "file:///C:/Windows/win.ini", "http://localhost/admin", "http://printer.local/",
+        "http://[::1]/", "http://169.254.169.254/latest/meta-data/", "http://2130706433/", "not a url",
+        "https://example.com/" + new string('a', UrlSafetyPolicy.MaximumUrlLength)
+    };
+    Check(rejectedUrls.All(RejectsUrl), "SSRF policy rejects non-HTTP, local, metadata and oversized URLs");
+    Check(UrlSafetyPolicy.Default.ValidateUrl(" https://example.com/path?q=1 ").Host == "example.com", "SSRF policy accepts public HTTPS URLs");
+
+    Check(ConversionService.ExtractUrl("[InternetShortcut]\r\nURL=https://example.com/a\r\n") == "https://example.com/a"
+        && ConversionService.ExtractUrl("  https://example.com/b \n") == "https://example.com/b", "URL extraction supports Windows shortcuts and plain URLs");
+
+    var diagnostic = ConversionService.CleanDiagnostic("Error: cannot open https://secret.example.com/a?token=123 \r\n  now");
+    Check(!diagnostic.Contains("secret.example.com", StringComparison.Ordinal)
+        && !diagnostic.Contains('\n')
+        && ConversionService.CleanDiagnostic(new string('x', 5_000)).Length == 600, "Tool diagnostics hide URLs and are capped in length");
+
+    var staleTemp = Path.Combine(root, "temp-stale");
+    var staleService = new ConversionService(tools, staleTemp);
+    var staleDirectory = Path.Combine(staleTemp, Guid.NewGuid().ToString("N"));
+    var freshDirectory = Path.Combine(staleTemp, Guid.NewGuid().ToString("N"));
+    var foreignDirectory = Path.Combine(staleTemp, "not-a-work-directory");
+    Directory.CreateDirectory(staleDirectory);
+    Directory.CreateDirectory(freshDirectory);
+    Directory.CreateDirectory(foreignDirectory);
+    Directory.SetLastWriteTimeUtc(staleDirectory, DateTime.UtcNow.AddDays(-3));
+    Directory.SetLastWriteTimeUtc(foreignDirectory, DateTime.UtcNow.AddDays(-3));
+    var removedDirectories = staleService.CleanupStaleWorkDirectories(TimeSpan.FromHours(24));
+    Check(removedDirectories == 1
+        && !Directory.Exists(staleDirectory)
+        && Directory.Exists(freshDirectory)
+        && Directory.Exists(foreignDirectory), "Stale work directories are removed while recent and foreign folders are kept");
+
+    var doctorReport = EnvironmentDoctor.Run(tools, Path.Combine(root, "doctor-temp"));
+    Check(doctorReport.All(check => check.Passed), "Environment doctor approves the bundled tools and ImageMagick policy");
+    var emptyTools = Path.Combine(root, "no-tools");
+    Directory.CreateDirectory(emptyTools);
+    var brokenReport = EnvironmentDoctor.Run(emptyTools, Path.Combine(root, "doctor-temp"));
+    Check(brokenReport.Count(check => !check.Passed) >= 7, "Environment doctor reports missing tools and policy");
 
     var wav = Path.Combine(root, "tone.wav");
     await File.WriteAllBytesAsync(wav, CreateWave());
@@ -224,6 +330,19 @@ void Check(bool condition, string description)
     }
     passed++;
     Console.WriteLine($"PASS: {description}");
+}
+
+static bool RejectsUrl(string url)
+{
+    try
+    {
+        UrlSafetyPolicy.Default.ValidateUrl(url);
+        return false;
+    }
+    catch (ArgumentException)
+    {
+        return true;
+    }
 }
 
 static async Task Run(string executable, string workingDirectory, IReadOnlyList<string> arguments)
