@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+  x:Class="MediaForge.HistoryPage"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid
+    Padding="48,34,48,40"
+    Background="{StaticResource CanvasBrush}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <TextBlock
+      FontSize="11"
+      FontWeight="Bold"
+      Foreground="{StaticResource WarmAccentBrush}"
+      Text="MEDIAFORGE / HISTÓRICO" />
+
+    <Grid
+      Grid.Row="1"
+      Margin="0,8,0,28"
+      ColumnSpacing="20">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <StackPanel Spacing="5">
+        <TextBlock
+          FontSize="34"
+          FontWeight="SemiBold"
+          Foreground="{StaticResource InkBrush}"
+          Text="Histórico de conversões" />
+        <TextBlock
+          FontSize="15"
+          Foreground="{StaticResource MutedInkBrush}"
+          Text="Conversões concluídas neste dispositivo." />
+      </StackPanel>
+      <Button
+        Grid.Column="1"
+        VerticalAlignment="Center"
+        Click="ClearHistoryButton_Click"
+        Content="Limpar histórico"
+        AutomationProperties.Name="Limpar histórico de conversões" />
+    </Grid>
+
+    <Grid Grid.Row="2">
+      <StackPanel Spacing="0">
+        <Border Height="1" Background="{StaticResource LineBrush}" />
+        <Grid
+          Padding="12,14"
+          ColumnSpacing="24">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.2*" />
+            <ColumnDefinition Width="1.5*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBlock
+            FontSize="11"
+            FontWeight="Bold"
+            Foreground="{StaticResource MutedInkBrush}"
+            Text="RESULTADO" />
+          <TextBlock
+            Grid.Column="1"
+            FontSize="11"
+            FontWeight="Bold"
+            Foreground="{StaticResource MutedInkBrush}"
+            Text="ORIGEM" />
+          <TextBlock
+            Grid.Column="2"
+            FontSize="11"
+            FontWeight="Bold"
+            Foreground="{StaticResource MutedInkBrush}"
+            Text="CONCLUÍDO" />
+        </Grid>
+        <Border Height="1" Background="{StaticResource LineBrush}" />
+        <Grid>
+          <ListView
+            x:Name="ActivityList"
+            Background="Transparent"
+            BorderThickness="0"
+            SelectionMode="None"
+            IsItemClickEnabled="False"
+            AutomationProperties.Name="Histórico local de conversões">
+            <ListView.ItemTemplate>
+              <DataTemplate>
+                <Grid
+                  Padding="12,14"
+                  ColumnSpacing="24">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*" />
+                    <ColumnDefinition Width="1.5*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <StackPanel Spacing="4">
+                    <TextBlock
+                      FontWeight="SemiBold"
+                      Foreground="{StaticResource InkBrush}"
+                      Text="{Binding OutputName}"
+                      TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                      FontSize="12"
+                      Foreground="{StaticResource ConverterAccentBrush}"
+                      Text="{Binding Kind}" />
+                  </StackPanel>
+                  <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource MutedInkBrush}"
+                    Text="{Binding SourceName}"
+                    TextTrimming="CharacterEllipsis" />
+                  <TextBlock
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource MutedInkBrush}"
+                    Text="{Binding CompletedAt}" />
+                </Grid>
+              </DataTemplate>
+            </ListView.ItemTemplate>
+          </ListView>
+          <TextBlock
+            x:Name="EmptyText"
+            Margin="12,24,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Foreground="{StaticResource MutedInkBrush}"
+            Text="Ainda não há conversões registadas." />
+        </Grid>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</Page>

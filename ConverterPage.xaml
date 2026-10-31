@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="MediaForge.ConverterPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid
+        x:Name="PageRoot"
+        Padding="48,32,48,28"
+        Background="{StaticResource CanvasBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="28">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="5">
+                <TextBlock
+                    FontSize="11"
+                    FontWeight="Bold"
+                    Foreground="{StaticResource ConverterAccentBrush}"
+                    Text="MEDIAFORGE  /  CONVERSÃO" />
+                <TextBlock
+                    FontSize="34"
+                    FontWeight="SemiBold"
+                    Foreground="{StaticResource InkBrush}"
+                    Text="Converter ficheiros" />
+                <TextBlock
+                    Foreground="{StaticResource MutedInkBrush}"
+                    FontSize="15"
+                    Text="Escolha a origem, defina o formato e guarde o resultado no computador." />
+            </StackPanel>
+            <StackPanel
+                Grid.Column="1"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center">
+                <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="9"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE72E;" Foreground="{StaticResource ConverterAccentBrush}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource InkBrush}"
+                        Text="LOCAL · PRIVADO" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer
+            Grid.Row="1"
+            Margin="0,30,0,24"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <Grid ColumnSpacing="44">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*" />
+                    <ColumnDefinition Width="0.9*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="20">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border
+                            Width="38"
+                            Height="38"
+                            Background="{StaticResource ConverterAccentSoftBrush}"
+                            CornerRadius="13">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource ConverterAccentBrush}"
+                                Text="01" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock
+                                FontSize="19"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource InkBrush}"
+                                Text="Escolha a origem" />
+                            <TextBlock
+                                Foreground="{StaticResource MutedInkBrush}"
+                                Text="Ficheiro, texto, página web ou vários Markdown." />
+                        </StackPanel>
+                    </Grid>
+
+                    <ComboBox
+                        x:Name="InputModeComboBox"
+                        Header="O que quer converter?"
+                        SelectionChanged="InputModeComboBox_SelectionChanged">
+                        <ComboBoxItem Content="Ficheiros do computador" Tag="file" />
+                        <ComboBoxItem Content="Escrever ou colar texto" Tag="text" />
+                        <ComboBoxItem Content="Endereço de website" Tag="url" />
+                        <ComboBoxItem Content="Juntar ficheiros (JSON / Markdown)" Tag="merge" />
+                    </ComboBox>
+
+                    <Grid>
+                        <Border
+                            x:Name="DropZone"
+                            Padding="24"
+                            AllowDrop="True"
+                            Background="{StaticResource ConverterAccentSoftBrush}"
+                            BorderBrush="{StaticResource ConverterAccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="20"
+                            AutomationProperties.Name="Área para largar os ficheiros de origem"
+                            DragOver="DropZone_DragOver"
+                            Drop="DropZone_Drop">
+                            <Grid ColumnSpacing="18">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border
+                                    Width="64"
+                                    Height="64"
+                                    VerticalAlignment="Top"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    CornerRadius="20">
+                                    <FontIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="26"
+                                        Glyph="&#xE8E5;"
+                                        Foreground="{StaticResource ConverterAccentBrush}" />
+                                </Border>
+                                <StackPanel Grid.Column="1" Spacing="10">
+                                    <TextBlock
+                                        FontSize="19"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource InkBrush}"
+                                        Text="Arraste o ficheiro para aqui"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        Foreground="{StaticResource MutedInkBrush}"
+                                        Text="Ou procure no computador"
+                                        TextWrapping="Wrap" />
+                                    <Button
+                                        x:Name="ChooseInputButton"
+                                        HorizontalAlignment="Left"
+                                        MinHeight="42"
+                                        Background="{StaticResource ConverterAccentBrush}"
+                                        Click="ChooseInputButton_Click"
+                                        Content="Selecionar ficheiro"
+                                        Foreground="White"
+                                        AutomationProperties.Name="Escolher ficheiro de origem" />
+                                    <TextBlock
+                                        x:Name="SelectedFilesText"
+                                        Foreground="{StaticResource InkBrush}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <TextBox
+                            x:Name="TextInputBox"
+                            MinHeight="210"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed"
+                            PlaceholderText="Escreva ou cole o texto que quer converter…"
+                            AutomationProperties.Name="Texto de origem" />
+                        <StackPanel
+                            x:Name="UrlInputPanel"
+                            Spacing="12"
+                            Visibility="Collapsed">
+                            <TextBox
+                                x:Name="UrlInputBox"
+                                Header="Endereço da página web"
+                                PlaceholderText="https://…"
+                                AutomationProperties.Name="URL do website" />
+                            <TextBlock
+                                Foreground="{StaticResource MutedInkBrush}"
+                                Text="A ligação só é consultada quando iniciar a conversão."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock
+                        Foreground="{StaticResource MutedInkBrush}"
+                        Text="Até 100 MB por ficheiro · temporários eliminados no fim."
+                        TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Column="1"
+                    Spacing="20">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border
+                            Width="38"
+                            Height="38"
+                            Background="{StaticResource WarmSurfaceBrush}"
+                            CornerRadius="13">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource WarmAccentBrush}"
+                                Text="02" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock
+                                FontSize="19"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource InkBrush}"
+                                Text="Defina a saída" />
+                            <TextBlock
+                                Foreground="{StaticResource MutedInkBrush}"
+                                Text="Formato e opções disponíveis para esta origem." />
+                        </StackPanel>
+                    </Grid>
+
+                    <ComboBox
+                        x:Name="FormatComboBox"
+                        Header="Converter para"
+                        PlaceholderText="Escolha primeiro a origem"
+                        AutomationProperties.Name="Formato de saída" />
+
+                    <Border Height="1" Background="{StaticResource LineBrush}" />
+                    <StackPanel Spacing="9">
+                        <TextBlock
+                            FontWeight="SemiBold"
+                            Foreground="{StaticResource InkBrush}"
+                            Text="Guardar resultado em" />
+                        <TextBlock
+                            x:Name="DestinationText"
+                            Foreground="{StaticResource MutedInkBrush}"
+                            TextTrimming="CharacterEllipsis" />
+                        <Button
+                            x:Name="ChooseDestinationButton"
+                            HorizontalAlignment="Left"
+                            Click="ChooseDestinationButton_Click"
+                            Content="Alterar pasta"
+                            AutomationProperties.Name="Escolher pasta de destino" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <Grid
+            Grid.Row="2"
+            ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="8">
+                <Border Height="1" Background="{StaticResource LineBrush}" />
+                <ProgressBar
+                    x:Name="ConversionProgressBar"
+                    Height="6"
+                    Minimum="0"
+                    Maximum="100"
+                    Visibility="Collapsed" />
+                <TextBlock
+                    x:Name="StatusText"
+                    MinHeight="24"
+                    Foreground="{StaticResource MutedInkBrush}"
+                    Text="Pronto para converter."
+                    TextWrapping="Wrap"
+                    AutomationProperties.LiveSetting="Polite" />
+            </StackPanel>
+            <Button
+                x:Name="CancelButton"
+                Grid.Column="1"
+                VerticalAlignment="Bottom"
+                Visibility="Collapsed"
+                Click="CancelButton_Click"
+                Content="Cancelar" />
+            <Button
+                x:Name="ConvertButton"
+                Grid.Column="2"
+                VerticalAlignment="Bottom"
+                MinWidth="190"
+                MinHeight="48"
+                Background="{StaticResource ConverterAccentBrush}"
+                Click="ConvertButton_Click"
+                Content="Converter ficheiro"
+                Foreground="White"
+                AutomationProperties.Name="Iniciar conversão" />
+        </Grid>
+    </Grid>
+</Page>

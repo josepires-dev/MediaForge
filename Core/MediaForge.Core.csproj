@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Services\ConversionService.cs" Link="Services\ConversionService.cs" />
+    <Compile Include="..\Services\HistoryService.cs" Link="Services\HistoryService.cs" />
+    <Compile Include="..\Services\ErrorLogger.cs" Link="Services\ErrorLogger.cs" />
+  </ItemGroup>
+</Project>

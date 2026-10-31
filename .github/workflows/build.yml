@@ -1,0 +1,52 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build + smoke tests
+        shell: pwsh
+        run: ./scripts/build.ps1 -Configuration Release
+
+      - name: Publish (pasta + MSIX não assinado)
+        shell: pwsh
+        run: ./scripts/publish.ps1
+
+      - name: Instalador Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\MediaForge.iss
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-publish
+          path: artifacts/publish
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-msix
+          path: AppPackages
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MediaForge-installer
+          path: artifacts/installer
+          if-no-files-found: warn
