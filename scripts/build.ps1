@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   Compila a solução MediaForge e executa os smoke tests.
@@ -18,6 +18,9 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Push-Location $root
 try {
+  # FFmpeg e Pandoc não estão no repositório; descarrega-os se faltarem (idempotente).
+  & "$PSScriptRoot\fetch-tools.ps1"
+
   dotnet restore .\MediaForge.csproj -r win-x64
   if ($LASTEXITCODE -ne 0) { throw 'Falha no restore.' }
 

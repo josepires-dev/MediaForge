@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   Instala em modo de desenvolvimento o pacote gerado (requer Modo de Programador ativo).

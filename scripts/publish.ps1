@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   Gera o pacote MSIX (e a pasta publicada) do MediaForge para win-x64.

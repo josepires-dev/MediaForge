@@ -1,4 +1,4 @@
-#Requires -Version 7.0
+﻿#Requires -Version 7.0
 <#
 .SYNOPSIS
     Limpa artefactos de build, cache e pastas temporárias do projeto MediaForge.

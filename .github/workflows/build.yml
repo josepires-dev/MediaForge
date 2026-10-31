@@ -6,9 +6,17 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows:
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -20,9 +28,30 @@ jobs:
         with:
           node-version: 20
 
+      - name: Cache de pacotes NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~\.nuget\packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json', 'nuget.config') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Cache das ferramentas (FFmpeg, Pandoc)
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}\mediaforge-tools-cache
+          key: tools-${{ hashFiles('scripts/tools.lock.json') }}
+
+      - name: Obter ferramentas (FFmpeg, Pandoc)
+        shell: pwsh
+        run: ./scripts/fetch-tools.ps1
+
       - name: Build + smoke tests
         shell: pwsh
         run: ./scripts/build.ps1 -Configuration Release
+
+      - name: Diagnóstico do ambiente (doctor)
+        shell: pwsh
+        run: ./scripts/doctor.ps1 -Configuration Release
 
       - name: Publish (pasta + MSIX não assinado)
         shell: pwsh

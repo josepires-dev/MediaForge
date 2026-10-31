@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   Cria um certificado autoassinado para assinar o MSIX em desenvolvimento.
