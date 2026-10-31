@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   Gera o pacote MSIX (e a pasta publicada) do MediaForge para win-x64.
@@ -17,12 +17,19 @@ try {
   $out = Join-Path $root 'artifacts\publish'
   if (Test-Path $out) { Remove-Item $out -Recurse -Force }
 
+  # O valor tem de ser calculado antes do array: dentro de @(...) a virgula tem
+  # precedencia sobre o '+', o que partia o argumento em dois e fazia o dotnet
+  # receber "mais do que um projeto" (MSB1008). A barra final e '/' para nao
+  # escapar a aspa quando o caminho contem espacos.
+  $pkgDir = ((Join-Path $root 'AppPackages') -replace '\\', '/') + '/'
+  $pkgDirArg = "-p:AppxPackageDir=$pkgDir"
+
   $props = @(
     '-c', 'Release',
     '-p:Platform=x64',
     '-p:RuntimeIdentifier=win-x64',
     '-p:GenerateAppxPackageOnBuild=true',
-    '-p:AppxPackageDir=' + (Join-Path $root 'AppPackages') + '\'
+    $pkgDirArg
   )
 
   if ($Sign) {
