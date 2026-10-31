@@ -1,0 +1,23 @@
+{
+  "description": "Ferramentas grandes que não estão no repositório (limite de 100 MB do GitHub). Descarregadas e verificadas por scripts/fetch-tools.ps1.",
+  "tools": [
+    {
+      "name": "ffmpeg",
+      "version": "9.0.1",
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.1/ffmpeg-9.0.1-essentials_build.zip",
+      "archiveSha256": "fec81ae03971d9dd4be3ebe02e263bd2ec1d789483f931bdba5f5715e65da2e9",
+      "archiveEntry": "ffmpeg-9.0.1-essentials_build/bin/ffmpeg.exe",
+      "target": "ffmpeg.exe",
+      "sha256": "72a489eccd008c2ec2c0a5856c5c75bc3d8bbfa90166c4566865c246445e6aa3"
+    },
+    {
+      "name": "pandoc",
+      "version": "3.11",
+      "url": "https://github.com/jgm/pandoc/releases/download/3.11/pandoc-3.11-windows-x86_64.zip",
+      "archiveSha256": "2ab72baf2399450e148ddf7a2a8689806c42e1bba71862b57e220fd9b8456d3d",
+      "archiveEntry": "pandoc-3.11/pandoc.exe",
+      "target": "pandoc.exe",
+      "sha256": "e0057eaf640d08ba028b70721d4f7b63a685c30430de9db89aea84de2d4a1912"
+    }
+  ]
+}

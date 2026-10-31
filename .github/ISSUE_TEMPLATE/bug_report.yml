@@ -1,0 +1,61 @@
+name: Relatório de erro
+description: Algo não funciona como esperado
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Problemas de segurança **não** devem ser reportados aqui. Use o relatório privado em [SECURITY.md](../blob/main/SECURITY.md).
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que aconteceu
+      description: Descreva o problema e o que esperava que acontecesse.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. Abrir o MediaForge
+        2. Escolher ...
+        3. Ver o erro
+    validations:
+      required: true
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo de conversão
+      options:
+        - Imagem
+        - PDF
+        - Vídeo
+        - Áudio
+        - Markdown / texto
+        - URL
+        - Notebook
+        - União Markdown / JSON
+        - Outro
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão do MediaForge
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Versão do Windows
+      placeholder: "Windows 11 23H2 x64"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Registo de erros
+      description: Conteúdo relevante de `%LOCALAPPDATA%\MediaForge\logs\error.log` e resultado de `scripts\doctor.ps1`. Remova dados pessoais.
+      render: text

@@ -1,0 +1,29 @@
+name: Pedido de funcionalidade
+description: Sugira uma melhoria ou uma nova função
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Que problema quer resolver
+      description: Descreva a necessidade, não apenas a solução.
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Proposta
+      description: Como imagina que funcionaria.
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+  - type: checkboxes
+    id: privacidade
+    attributes:
+      label: Compatibilidade com os princípios do projeto
+      options:
+        - label: A proposta mantém o processamento local (sem enviar ficheiros para serviços externos)
+          required: true

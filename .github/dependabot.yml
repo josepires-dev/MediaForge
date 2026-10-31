@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directories:
+      - "/"
+      - "/Core"
+      - "/Tests"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      windows-app-sdk:
+        patterns:
+          - "Microsoft.WindowsAppSDK*"
+          - "Microsoft.Windows.SDK.BuildTools*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
