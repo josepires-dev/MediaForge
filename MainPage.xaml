@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+  x:Class="MediaForge.MainPage"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <NavigationView
+    x:Name="AppNavigation"
+    Background="{StaticResource SurfaceBrush}"
+    Foreground="{StaticResource InkBrush}"
+    IsBackButtonVisible="Collapsed"
+    IsPaneToggleButtonVisible="False"
+    IsSettingsVisible="False"
+    PaneDisplayMode="Top"
+    SelectionChanged="AppNavigation_SelectionChanged">
+    <NavigationView.MenuItems>
+      <NavigationViewItem x:Name="ConvertNavigationItem" Content="Converter ficheiros" Tag="convert">
+        <NavigationViewItem.Icon>
+          <FontIcon Glyph="&#xE8D4;" />
+        </NavigationViewItem.Icon>
+      </NavigationViewItem>
+      <NavigationViewItem x:Name="HistoryNavigationItem" Content="Histórico" Tag="history">
+        <NavigationViewItem.Icon>
+          <FontIcon Glyph="&#xE81C;" />
+        </NavigationViewItem.Icon>
+      </NavigationViewItem>
+    </NavigationView.MenuItems>
+    <Frame x:Name="SectionFrame" Background="{StaticResource CanvasBrush}" />
+  </NavigationView>
+</Page>
