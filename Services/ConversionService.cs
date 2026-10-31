@@ -24,8 +24,10 @@ public sealed class ConversionService
 {
     public const long MaximumInputBytes = 100L * 1024 * 1024;
     public const int MaximumDimension = 16_000;
+    private const int MaximumDiagnosticLength = 600;
     private static readonly TimeSpan ProcessTimeout = TimeSpan.FromMinutes(5);
-    private static readonly HttpClient HttpClient = CreateHttpClient();
+    private static readonly TimeSpan StaleWorkDirectoryAge = TimeSpan.FromHours(24);
+    private static readonly HttpClient DefaultHttpClient = UrlSafetyPolicy.Default.CreateHttpClient();
     private static readonly HashSet<string> VideoInputs = new(StringComparer.OrdinalIgnoreCase)
     {
         "mp4", "m4v", "mov", "mkv", "avi", "webm", "wmv", "flv", "mpeg", "mpg", "3gp"
@@ -58,14 +60,20 @@ public sealed class ConversionService
     ];
     private readonly string _toolsDirectory;
     private readonly string _temporaryRoot;
+    private readonly UrlSafetyPolicy _urlPolicy;
+    private readonly HttpClient _httpClient;
 
-    public ConversionService(string? toolsDirectory = null, string? temporaryRoot = null)
+    public ConversionService(string? toolsDirectory = null, string? temporaryRoot = null, UrlSafetyPolicy? urlPolicy = null)
     {
         _toolsDirectory = Path.GetFullPath(toolsDirectory ?? Path.Combine(AppContext.BaseDirectory, "Tools"));
         _temporaryRoot = Path.GetFullPath(temporaryRoot ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MediaForge",
             "Temp"));
+        _urlPolicy = urlPolicy ?? UrlSafetyPolicy.Default;
+        _httpClient = ReferenceEquals(_urlPolicy, UrlSafetyPolicy.Default)
+            ? DefaultHttpClient
+            : _urlPolicy.CreateHttpClient();
     }
 
     public async Task<IReadOnlyList<string>> GetAvailableImageFormatsAsync(CancellationToken cancellationToken = default)
@@ -105,6 +113,42 @@ public sealed class ConversionService
             .Order(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
+    /// <summary>
+    /// Remove pastas de trabalho abandonadas (por exemplo após um corte de energia durante a transcodificação).
+    /// Só toca em pastas com nome GUID ("N") mais antigas do que <paramref name="maxAge"/>.
+    /// </summary>
+    public int CleanupStaleWorkDirectories(TimeSpan maxAge)
+    {
+        if (!Directory.Exists(_temporaryRoot))
+        {
+            return 0;
+        }
+
+        var removed = 0;
+        var threshold = DateTime.UtcNow - maxAge;
+        foreach (var directory in Directory.EnumerateDirectories(_temporaryRoot))
+        {
+            var name = Path.GetFileName(directory);
+            if (name.Length != 32 || !Guid.TryParseExact(name, "N", out _))
+            {
+                continue;
+            }
+            try
+            {
+                if (Directory.GetLastWriteTimeUtc(directory) < threshold)
+                {
+                    Directory.Delete(directory, recursive: true);
+                    removed++;
+                }
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Em uso ou sem permissão: fica para a próxima limpeza.
+            }
+        }
+        return removed;
+    }
+
     public async Task<ConversionResult> ConvertAsync(
         string sourcePath,
         ConversionOptions options,
@@ -133,6 +177,7 @@ public sealed class ConversionService
         var targetDirectory = Path.GetFullPath(outputDirectory);
         Directory.CreateDirectory(targetDirectory);
         Directory.CreateDirectory(_temporaryRoot);
+        CleanupStaleWorkDirectories(StaleWorkDirectoryAge);
         var workDirectory = Path.Combine(_temporaryRoot, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(workDirectory);
 
@@ -221,7 +266,7 @@ public sealed class ConversionService
     {
         if (inputPaths.Count < 2)
         {
-            throw new ArgumentException("Não é possível juntar ficheiros JSON de tipos incompatíveis (objetos e listas misturados).", nameof(inputPaths));
+            throw new ArgumentException("Selecione pelo menos dois ficheiros Markdown para juntar.", nameof(inputPaths));
         }
 
         var output = new StringBuilder();
@@ -231,7 +276,7 @@ public sealed class ConversionService
             var info = new FileInfo(path);
             if (!info.Exists || !info.Extension.Equals(".md", StringComparison.OrdinalIgnoreCase))
             {
-                throw new ArgumentException("Não é possível juntar ficheiros JSON de tipos incompatíveis (objetos e listas misturados).", nameof(inputPaths));
+                throw new ArgumentException($"'{Path.GetFileName(path)}' não existe ou não é um ficheiro .md.", nameof(inputPaths));
             }
             if (info.Length > MaximumInputBytes)
             {
@@ -253,7 +298,7 @@ public sealed class ConversionService
     {
         if (inputPaths.Count < 2)
         {
-            throw new ArgumentException("Não é possível juntar ficheiros JSON de tipos incompatíveis (objetos e listas misturados).", nameof(inputPaths));
+            throw new ArgumentException("Selecione pelo menos dois ficheiros JSON para juntar.", nameof(inputPaths));
         }
 
         var parsedDocuments = new List<System.Text.Json.Nodes.JsonNode?>();
@@ -266,7 +311,7 @@ public sealed class ConversionService
             var info = new FileInfo(path);
             if (!info.Exists || !info.Extension.Equals(".json", StringComparison.OrdinalIgnoreCase))
             {
-                throw new ArgumentException("Não é possível juntar ficheiros JSON de tipos incompatíveis (objetos e listas misturados).", nameof(inputPaths));
+                throw new ArgumentException($"'{Path.GetFileName(path)}' não existe ou não é um ficheiro .json.", nameof(inputPaths));
             }
             if (info.Length > MaximumInputBytes)
             {
@@ -718,14 +763,10 @@ public sealed class ConversionService
             throw new InvalidOperationException("A conversão de URLs apenas suporta Markdown ou texto.");
         }
 
-        var urlText = (await File.ReadAllTextAsync(source, cancellationToken)).Trim();
-        if (!Uri.TryCreate(urlText, UriKind.Absolute, out var uri)
-            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-        {
-            throw new ArgumentException("O URL deve ser uma ligação HTTP ou HTTPS válida.", nameof(source));
-        }
+        var urlText = ExtractUrl(await File.ReadAllTextAsync(source, cancellationToken));
+        var uri = _urlPolicy.ValidateUrl(urlText);
         progress?.Report(new ConversionProgress("A obter o conteúdo do website…"));
-        using var response = await HttpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
         if (response.Content.Headers.ContentLength > MaximumInputBytes)
         {
@@ -747,6 +788,27 @@ public sealed class ConversionService
         EnsureProcessSucceeded(result, "O Pandoc não conseguiu converter o website.");
         EnsureNonEmpty(output, "O website não devolveu conteúdo convertível.");
         return output;
+    }
+
+    /// <summary>
+    /// Aceita tanto um URL simples como um atalho do Windows (.url, formato INI com a linha "URL=...").
+    /// </summary>
+    public static string ExtractUrl(string fileContent)
+    {
+        var text = fileContent.Trim();
+        if (!text.StartsWith("[InternetShortcut]", StringComparison.OrdinalIgnoreCase))
+        {
+            return text;
+        }
+        foreach (var line in text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("URL=", StringComparison.OrdinalIgnoreCase))
+            {
+                return trimmed[4..].Trim();
+            }
+        }
+        return string.Empty;
     }
 
     private async Task<string> ConvertTextAsync(
@@ -906,9 +968,25 @@ public sealed class ConversionService
 
     private static string? LastUsefulLine(string output)
     {
-        return output.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Select(line => line.Trim())
-            .LastOrDefault(line => line.Length > 0 && !line.StartsWith("frame=", StringComparison.OrdinalIgnoreCase));
+        var line = output.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .Select(candidate => candidate.Trim())
+            .LastOrDefault(candidate => candidate.Length > 0 && !candidate.StartsWith("frame=", StringComparison.OrdinalIgnoreCase));
+        return line is null ? null : CleanDiagnostic(line);
+    }
+
+    /// <summary>
+    /// Limpa mensagens de ferramentas externas antes de as mostrar ao utilizador:
+    /// oculta URLs, normaliza espaços e limita o tamanho.
+    /// </summary>
+    public static string CleanDiagnostic(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return string.Empty;
+        }
+        var cleaned = Regex.Replace(message, @"https?://\S+", "[ligação ocultada]", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, @"\s+", " ").Trim();
+        return cleaned.Length <= MaximumDiagnosticLength ? cleaned : cleaned[..MaximumDiagnosticLength];
     }
 
     private static void ValidateOptions(ConversionOptions options)
@@ -1058,14 +1136,6 @@ public sealed class ConversionService
         }
     }
 
-    private static HttpClient CreateHttpClient()
-    {
-        var handler = new HttpClientHandler { AllowAutoRedirect = true, MaxAutomaticRedirections = 5 };
-        var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MediaForge", "1.0"));
-        return client;
-    }
-
     private static void EnsureNonEmpty(string path, string message)
     {
         if (!File.Exists(path) || new FileInfo(path).Length == 0)
@@ -1076,9 +1146,17 @@ public sealed class ConversionService
 
     private static void TryDeleteDirectory(string directory)
     {
-        if (Directory.Exists(directory))
+        try
         {
-            Directory.Delete(directory, recursive: true);
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Um ficheiro ainda em uso não deve esconder o resultado da conversão;
+            // CleanupStaleWorkDirectories remove o que sobrar na próxima execução.
         }
     }
 
