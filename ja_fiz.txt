@@ -1,8 +1,0 @@
-já fiz
-2026-10-31 00:00 UTC
-
-Melhorias aplicadas:
-- Adicionado .gitattributes para garantir consistência de line endings (LF/CRLF) em todos os ficheiros de texto e binários.
-- Criado script scripts/clean.ps1 para limpeza automatizada de artefactos de build (bin, obj, AppPackages, etc.).
-- Melhorado README.md com badges de build, licença e versão do .NET, além de formatação aprimorada e secção de contribuição.
-- Verificação de segurança: 0 vulnerabilidades, 0 code smells, 0 dependências circulares.
