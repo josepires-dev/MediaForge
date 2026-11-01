@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaForge", "MediaForge.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaForge.Core", "Core\MediaForge.Core.csproj", "{A1B2C3D4-0002-4000-8000-000000000002}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaForge.SmokeTests", "Tests\MediaForge.SmokeTests.csproj", "{A1B2C3D4-0003-4000-8000-000000000003}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaForge.Tests", "Tests\MediaForge.Tests.csproj", "{A1B2C3D4-0003-4000-8000-000000000003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaForge.Doctor", "Doctor\MediaForge.Doctor.csproj", "{D96C9409-DAFC-4938-89D2-0A77B58691C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,14 @@ Global
 		{A1B2C3D4-0003-4000-8000-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A1B2C3D4-0003-4000-8000-000000000003}.Release|x64.ActiveCfg = Release|Any CPU
 		{A1B2C3D4-0003-4000-8000-000000000003}.Release|x64.Build.0 = Release|Any CPU
+		{D96C9409-DAFC-4938-89D2-0A77B58691C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D96C9409-DAFC-4938-89D2-0A77B58691C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D96C9409-DAFC-4938-89D2-0A77B58691C2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D96C9409-DAFC-4938-89D2-0A77B58691C2}.Debug|x64.Build.0 = Debug|Any CPU
+		{D96C9409-DAFC-4938-89D2-0A77B58691C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D96C9409-DAFC-4938-89D2-0A77B58691C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D96C9409-DAFC-4938-89D2-0A77B58691C2}.Release|x64.ActiveCfg = Release|Any CPU
+		{D96C9409-DAFC-4938-89D2-0A77B58691C2}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
