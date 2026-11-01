@@ -11,7 +11,7 @@
 
 ## Verificações
 
-- [ ] `.\scripts\build.ps1` termina sem erros e com todos os smoke tests a passar
+- [ ] `.\scripts\build.ps1` termina sem erros e com todos os testes a passar
 - [ ] `.\scripts\doctor.ps1` devolve tudo OK
 - [ ] Acrescentei ou atualizei testes para o comportamento novo
 - [ ] Atualizei `CHANGELOG.md` (e criei um ADR em `docs/`, se a decisão for relevante)

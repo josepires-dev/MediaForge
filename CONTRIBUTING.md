@@ -13,7 +13,7 @@ Obrigado pelo interesse! Este guia resume o que precisa para propor uma alteraç
 Requisitos: Windows 10/11 x64, SDK .NET 8 (versão fixada em `global.json`), Windows App SDK/NuGet e Node.js (apenas para o teste do WebAssembly).
 
 ```powershell
-.\scripts\build.ps1      # descarrega as ferramentas em falta, compila e corre os smoke tests
+.\scripts\build.ps1      # descarrega as ferramentas em falta, compila e corre os testes
 .\scripts\doctor.ps1     # verifica ferramentas, política do ImageMagick e pasta temporária
 ```
 
@@ -23,7 +23,7 @@ O FFmpeg e o Pandoc não estão no repositório (são grandes demais para o GitH
 
 1. Faça fork e crie uma branch a partir de `main` (`feature/...` ou `fix/...`).
 2. Faça alterações pequenas e focadas, uma ideia por Pull Request.
-3. Adicione ou atualize os smoke tests em `Tests/Program.cs` para o comportamento novo.
+3. Adicione ou atualize os testes xUnit em `Tests/` para o comportamento novo.
 4. Corra `.\scripts\build.ps1` e confirme que termina sem erros e com todos os testes a passar.
 5. Atualize `CHANGELOG.md` (secção *Não lançado*) e, se a decisão for relevante, adicione um ADR em `docs/`.
 6. Abra o Pull Request e preencha o modelo.

@@ -68,7 +68,7 @@ Requisitos de desenvolvimento: SDK .NET 8, Windows App SDK/NuGet e Node.js (apen
 # Obter FFmpeg e Pandoc (também é chamado pelo build.ps1; não faz nada se já existirem)
 .\scripts\fetch-tools.ps1
 
-# Compilar e executar testes de fumo
+# Compilar e executar os testes (xUnit)
 .\scripts\build.ps1
 
 # Diagnosticar o ambiente (ferramentas, política do ImageMagick, pasta temporária)

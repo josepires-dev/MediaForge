@@ -1,11 +1,11 @@
 ﻿#requires -Version 5.1
 <#
 .SYNOPSIS
-  Compila a solução MediaForge e executa os smoke tests.
+  Compila a solução MediaForge e executa os testes xUnit.
 .PARAMETER Configuration
   Debug ou Release (predefinição: Release).
 .PARAMETER SkipTests
-  Não executa os smoke tests.
+  Não executa os testes xUnit.
 #>
 [CmdletBinding()]
 param(
@@ -28,8 +28,9 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Falha na compilação.' }
 
   if (-not $SkipTests) {
-    dotnet run --project .\Tests\MediaForge.SmokeTests.csproj -c $Configuration -- $root
-    if ($LASTEXITCODE -ne 0) { throw 'Falha nos smoke tests.' }
+    $results = Join-Path $root 'artifacts\test-results'
+    dotnet test .\Tests\MediaForge.Tests.csproj -c $Configuration --logger 'trx;LogFileName=results.trx' --results-directory $results
+    if ($LASTEXITCODE -ne 0) { throw 'Falha nos testes.' }
   }
 }
 finally {

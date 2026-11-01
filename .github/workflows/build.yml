@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
@@ -45,7 +45,7 @@ jobs:
         shell: pwsh
         run: ./scripts/fetch-tools.ps1
 
-      - name: Build + smoke tests
+      - name: Build + testes (xUnit)
         shell: pwsh
         run: ./scripts/build.ps1 -Configuration Release
 
@@ -62,6 +62,14 @@ jobs:
         run: |
           choco install innosetup -y --no-progress
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\MediaForge.iss
+
+      - name: Resultados dos testes
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: MediaForge-test-results
+          path: artifacts/test-results
+          if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v7
         with:
