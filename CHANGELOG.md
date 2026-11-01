@@ -4,6 +4,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Não lançado]
 
+## [1.0.0] - 2026-11-01
+
 ### Segurança
 - Conversão de URLs protegida contra SSRF (`UrlSafetyPolicy`): só HTTP/HTTPS, URLs até 2048 caracteres, bloqueio de `localhost`, redes privadas, CGNAT, link-local (incluindo metadados cloud) e endereços reservados IPv4/IPv6.
 - Os endereços IP são verificados no momento da ligação, o que cobre redireccionamentos e DNS rebinding; o proxy do sistema é ignorado.
@@ -11,6 +13,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 - Adicionados `SECURITY.md` (relatório privado de vulnerabilidades) e Dependabot para NuGet e GitHub Actions.
 
 ### Adicionado
+- `THIRD-PARTY-NOTICES.md` com as licenças e o código-fonte dos componentes de terceiros, incluído no instalador.
+- Workflow `release.yml`: ao enviar uma tag `v*`, compila, gera o instalador e publica a release com `SHA256SUMS.txt`.
 - `EnvironmentDoctor` e `scripts/doctor.ps1` (também `--doctor` nos smoke tests): verifica ferramentas portáteis, política do ImageMagick e pasta temporária.
 - `scripts/fetch-tools.ps1` e `scripts/tools.lock.json`: descarregam FFmpeg 9.0.1 e Pandoc 3.11 com verificação de SHA-256 (ver ADR-003).
 - `ConversionService.CleanupStaleWorkDirectories`: remove diretórios de trabalho órfãos com mais de 24 h, sem tocar em pastas recentes ou alheias.
@@ -30,7 +34,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 ### Removido
 - `HANDOVER.md`, `ja_fiz.txt` e `gh_installer.msi` do repositório.
 
-## [1.0.0] - 2026-10-11
+## [0.9.0] - 2026-10-11 (versão interna)
 
 ### Alterado
 - A aplicação passa a ter apenas as funções do UniversalConverter (XAMPP): conversão de imagens, PDF, vídeo, áudio, texto/Markdown, URLs, notebooks e união de Markdown, com histórico local.

@@ -92,3 +92,5 @@ Leia [CONTRIBUTING.md](CONTRIBUTING.md). Em resumo: faça fork, crie uma branch,
 ## Licença
 
 [MIT](LICENSE)
+
+As ferramentas incluídas (FFmpeg, Pandoc, Poppler e ImageMagick) são executáveis independentes com licenças próprias, listadas em [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

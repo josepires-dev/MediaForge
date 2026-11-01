@@ -1,0 +1,104 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+
+      - name: Verificar que a tag coincide com a versão do instalador
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'.TrimStart('v')
+          $iss = Get-Content installer/MediaForge.iss -Raw
+          if ($iss -notmatch '#define AppVersion "([^"]+)"') { throw 'AppVersion não encontrada em installer/MediaForge.iss' }
+          if ($Matches[1] -ne $tag) { throw "A tag ($tag) não coincide com AppVersion ($($Matches[1]))." }
+
+      - name: Obter ferramentas (FFmpeg, Pandoc)
+        shell: pwsh
+        run: ./scripts/fetch-tools.ps1
+
+      - name: Build + smoke tests
+        shell: pwsh
+        run: ./scripts/build.ps1 -Configuration Release
+
+      - name: Diagnóstico do ambiente (doctor)
+        shell: pwsh
+        run: ./scripts/doctor.ps1 -Configuration Release
+
+      - name: Publish
+        shell: pwsh
+        run: ./scripts/publish.ps1
+
+      - name: Instalador Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\MediaForge.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao compilar o instalador.' }
+
+      - name: Somas de verificação e notas da release
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          $setup = Get-ChildItem artifacts/installer -Filter 'MediaForge-Setup-*.exe' | Select-Object -First 1
+          if (-not $setup) { throw 'Instalador não encontrado.' }
+          $hash = (Get-FileHash $setup.FullName -Algorithm SHA256).Hash.ToLower()
+          "$hash  $($setup.Name)" | Set-Content -Path artifacts/installer/SHA256SUMS.txt -Encoding ascii
+
+          $changelog = Get-Content CHANGELOG.md -Raw -Encoding UTF8
+          $pattern = '(?ms)^## \[' + [regex]::Escape($version) + '\][^\r\n]*\r?\n(.*?)(?=^## \[|\z)'
+          $section = if ($changelog -match $pattern) { $Matches[1].Trim() } else { 'Ver CHANGELOG.md.' }
+
+          $notes = @(
+            "## MediaForge $version",
+            '',
+            '**Instalar:** descarregue `' + $setup.Name + '`, execute-o e siga o assistente. Não precisa de privilégios de administrador.',
+            '',
+            '> O instalador **não está assinado digitalmente**, por isso o Windows SmartScreen pode mostrar um aviso ("Windows protegeu o seu PC"). Para continuar: **Mais informações → Executar mesmo assim**. Pode confirmar a integridade com o SHA-256 abaixo.',
+            '',
+            '**SHA-256:** `' + $hash + '`',
+            '',
+            '### Alterações',
+            '',
+            $section,
+            '',
+            '### Licenças',
+            '',
+            'O MediaForge é MIT. O instalador inclui FFmpeg (GPL v3), Pandoc (GPL v2+), Poppler (GPL) e ImageMagick, que são executáveis independentes com licenças próprias. Ver [THIRD-PARTY-NOTICES.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/THIRD-PARTY-NOTICES.md).'
+          )
+          $notes -join "`n" | Set-Content -Path release-notes.md -Encoding utf8
+
+      - name: Publicar release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $setup = Get-ChildItem artifacts/installer -Filter 'MediaForge-Setup-*.exe' | Select-Object -First 1
+          gh release create '${{ github.ref_name }}' $setup.FullName artifacts/installer/SHA256SUMS.txt `
+            --title 'MediaForge ${{ github.ref_name }}' `
+            --notes-file release-notes.md `
+            --verify-tag
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao criar a release.' }
