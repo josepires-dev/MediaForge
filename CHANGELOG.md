@@ -4,6 +4,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Não lançado]
 
+### Alterado
+- Os testes passam de um programa de consola caseiro para um projeto xUnit (`Tests/MediaForge.Tests.csproj`) com os mesmos 51 casos, relatório por teste (TRX) e cobertura (coverlet). O diagnóstico do ambiente tem agora o seu próprio projeto (`Doctor/`).
+- CI: `actions/setup-dotnet` 4 → 6 e publicação dos resultados dos testes como artefacto.
+
 ## [1.0.0] - 2026-11-01
 
 ### Segurança

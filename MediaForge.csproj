@@ -43,6 +43,7 @@
     </Content>
     <Compile Remove="Core\**\*.cs" />
     <Compile Remove="Tests\**\*.cs" />
+    <Compile Remove="Doctor\**\*.cs" />
     <Compile Remove="Services\**\*.cs" />
   </ItemGroup>
 

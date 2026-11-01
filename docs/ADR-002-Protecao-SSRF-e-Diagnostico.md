@@ -22,11 +22,11 @@ Esta decisão incorpora ideias do UniversalConverter (comando `doctor`) e refor�
 - **IPv6**: loopback, `::`, link-local, site-local, ULA e multicast. Endereços IPv4 mapeados em IPv6 são convertidos antes da verificação.
 
 ### 2. Rede privada apenas em testes
-- **Decisão**: `UrlSafetyPolicy.AllowPrivateNetwork` existe exclusivamente para os smoke tests (servidor em loopback). O construtor de `ConversionService` usa `UrlSafetyPolicy.Default`.
+- **Decisão**: `UrlSafetyPolicy.AllowPrivateNetwork` existe exclusivamente para os testes (servidor em loopback). O construtor de `ConversionService` usa `UrlSafetyPolicy.Default`.
 - **Consequência**: não há opção de configuração nem variável de ambiente para desligar a proteção em produção.
 
 ### 3. `EnvironmentDoctor`
-- **Decisão**: expor um diagnóstico (`--doctor` nos smoke tests e `scripts/doctor.ps1`) que verifica ferramentas portáteis (FFmpeg, Pandoc, ImageMagick, Poppler), a política do ImageMagick (coders `HTTP`, `HTTPS` e `URL` com `rights="none"`) e a pasta temporária (escrita e mínimo de 1 GiB livre).
+- **Decisão**: expor um diagnóstico (o projeto `Doctor` e `scripts/doctor.ps1`) que verifica ferramentas portáteis (FFmpeg, Pandoc, ImageMagick, Poppler), a política do ImageMagick (coders `HTTP`, `HTTPS` e `URL` com `rights="none"`) e a pasta temporária (escrita e mínimo de 1 GiB livre).
 - **Justificação**: falhas de empacotamento ou um `policy.xml` alterado deixam de aparecer como erros obscuros de conversão e passam a ser detetadas cedo, também no CI. O código de saída é 0 (tudo OK) ou 1 (alguma falha).
 
 ### 4. Limpeza de diretórios de trabalho órfãos
