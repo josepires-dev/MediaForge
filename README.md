@@ -89,6 +89,11 @@ Para reportar uma vulnerabilidade, siga [SECURITY.md](SECURITY.md). Não use iss
 
 Leia [CONTRIBUTING.md](CONTRIBUTING.md). Em resumo: faça fork, crie uma branch, corra `.\scripts\build.ps1`, atualize o `CHANGELOG.md` e abra um Pull Request.
 
+## Projetos relacionados
+
+- [**UniversalConverter**](https://github.com/josepires-dev/UniversalConverter): versão PHP/Apache do conversor, para XAMPP, Laragon ou WAMP.
+- [**UniversalDownloader**](https://github.com/josepires-dev/UniversalDownloader): downloader local de vídeo e áudio (MP4/MP3, playlists) com yt-dlp e FFmpeg.
+
 ## Licença
 
 [MIT](LICENSE)
